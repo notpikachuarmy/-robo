@@ -1,0 +1,497 @@
+/* =========================================================
+   El Robo de Randes: Misión Surge — estilos
+   Estética arcade pixel: bordes gruesos, sombras duras sin
+   desenfoque y una paleta de cielo de día con oro de botín.
+   ========================================================= */
+
+:root {
+  --ink: #1D2350;        /* azul marino: paneles y texto oscuro */
+  --ink-deep: #121638;   /* sombras duras */
+  --gold: #FFD23F;       /* dinero, botón principal */
+  --gold-dark: #C99A00;
+  --red: #E8473C;        /* alertas, vidas, sello */
+  --sky: #5FB7E5;
+  --grass: #4E9A35;
+  --white: #FFFFFF;
+
+  --font: "Pixelify Sans", "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  --radius: 6px;
+  --shadow: 6px 6px 0 var(--ink-deep);
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--ink);
+  color: var(--white);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0)
+           env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+}
+
+.app {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 12px;
+}
+
+/* ---------- Escenario ---------- */
+.stage {
+  position: relative;
+  /* Mantiene la proporción 960x420 y cabe tanto en ancho como en alto */
+  width: min(1100px, 100%, calc((100dvh - 40px) * 960 / 420));
+  aspect-ratio: 960 / 420;
+  border: 4px solid var(--ink-deep);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  background: var(--sky);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+#game {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.is-hidden { display: none !important; }
+
+/* ---------- HUD ---------- */
+.hud {
+  position: absolute;
+  inset: 0 0 auto 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: clamp(6px, 1.2vw, 12px);
+  pointer-events: none;
+  font-size: clamp(10px, 1.5vw, 16px);
+}
+
+.hud-group {
+  display: flex;
+  gap: 6px;
+}
+
+.hud-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 5.5em;
+  padding: 0.35em 0.7em 0.4em;
+  background: rgba(29, 35, 80, 0.88);
+  border: 2px solid var(--ink-deep);
+  border-radius: 4px;
+  box-shadow: 3px 3px 0 rgba(18, 22, 56, 0.6);
+}
+
+.hud-label {
+  font-size: 0.72em;
+  opacity: 0.8;
+  line-height: 1.1;
+}
+
+.hud-value {
+  font-size: 1.35em;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-item--money .hud-value { color: var(--gold); }
+
+.hud-lives {
+  color: var(--red);
+  letter-spacing: 0.08em;
+}
+.hud-lives .lost { color: rgba(255, 255, 255, 0.25); }
+
+.hud-powers {
+  display: flex;
+  gap: 6px;
+  margin-left: 2px;
+}
+
+.power-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.35em 0.55em;
+  background: rgba(29, 35, 80, 0.88);
+  border: 2px solid var(--gold);
+  border-radius: 4px;
+}
+
+.power-icon { font-size: 1.15em; line-height: 1; }
+.power-icon--text { font-weight: 700; color: var(--gold); }
+
+.power-bar {
+  width: 3.4em;
+  height: 0.5em;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.power-bar i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--gold);
+  transform-origin: left center;
+}
+
+.hud-buttons {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.icon-btn {
+  width: 2.4em;
+  height: 2.4em;
+  font: inherit;
+  font-size: 1em;
+  color: var(--white);
+  background: rgba(29, 35, 80, 0.88);
+  border: 2px solid var(--ink-deep);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.icon-btn:hover { background: var(--ink); }
+
+/* ---------- Pantallas superpuestas ---------- */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(18, 22, 56, 0.45);
+  overflow: auto;
+  z-index: 5;
+}
+
+/* Inicio: la tarjeta va a la izquierda y deja ver la persecución en vivo a la derecha */
+#screen-start {
+  justify-content: flex-start;
+  padding-left: clamp(16px, 4%, 48px);
+  background: linear-gradient(90deg, rgba(18, 22, 56, 0.35), rgba(18, 22, 56, 0) 60%);
+}
+
+.loading-text {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.card {
+  width: min(520px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  padding: clamp(14px, 2.4vw, 28px);
+  background: var(--ink);
+  border: 4px solid var(--ink-deep);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(6px, 1.2vw, 12px);
+  text-align: center;
+}
+
+.card--title {
+  width: min(470px, 52%);
+  align-items: flex-start;
+  text-align: left;
+}
+
+.card--over { width: min(560px, 100%); }
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.btn-row .btn { min-width: 0; }
+
+/* Título: el elemento con más personalidad de toda la interfaz */
+.title {
+  margin: 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  font-size: clamp(28px, 4.4vw, 50px);
+  font-weight: 700;
+  line-height: 0.92;
+  color: var(--gold);
+  text-shadow:
+    3px 3px 0 var(--red),
+    6px 6px 0 var(--ink-deep);
+}
+
+.stamp {
+  margin: -2px 0 0;
+  padding: 0.15em 0.7em 0.2em;
+  font-size: clamp(16px, 2.4vw, 24px);
+  font-weight: 700;
+  color: var(--white);
+  background: var(--red);
+  border: 3px solid var(--ink-deep);
+  border-radius: 3px;
+  transform: rotate(-4deg);
+  transform-origin: left center;
+  box-shadow: 3px 3px 0 var(--ink-deep);
+}
+
+.pitch {
+  margin: 2px 0 0;
+  max-width: 44ch;
+  font-size: clamp(13px, 1.6vw, 16px);
+  line-height: 1.45;
+  opacity: 0.92;
+}
+
+.screen-title {
+  margin: 0;
+  font-size: clamp(24px, 3.6vw, 36px);
+  color: var(--gold);
+  text-shadow: 3px 3px 0 var(--ink-deep);
+}
+
+/* ---------- Botones ---------- */
+.btn {
+  min-width: 10em;
+  padding: 0.55em 1.4em 0.65em;
+  font: inherit;
+  font-size: clamp(16px, 2vw, 20px);
+  font-weight: 700;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 60ms ease, box-shadow 60ms ease;
+}
+
+.btn--primary {
+  color: var(--ink);
+  background: var(--gold);
+  border: 3px solid var(--ink-deep);
+  box-shadow: 0 5px 0 var(--gold-dark), 0 5px 0 3px var(--ink-deep);
+}
+.btn--primary:hover { background: #FFDE6A; }
+.btn--primary:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--gold-dark), 0 1px 0 3px var(--ink-deep);
+}
+
+.btn--ghost {
+  color: var(--white);
+  background: transparent;
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  font-size: clamp(14px, 1.7vw, 17px);
+}
+.btn--ghost:hover { border-color: var(--white); }
+
+.btn:focus-visible,
+.icon-btn:focus-visible,
+.touch-btn:focus-visible {
+  outline: 3px solid var(--white);
+  outline-offset: 3px;
+}
+
+/* ---------- Controles y estadísticas ---------- */
+.controls,
+.stats {
+  margin: 4px 0 0;
+  width: 100%;
+  display: grid;
+  gap: 4px;
+  font-size: clamp(12px, 1.4vw, 14px);
+  text-align: left;
+}
+
+.controls {
+  grid-template-columns: 1fr 1fr;
+  column-gap: 14px;
+  row-gap: 0;
+}
+
+.controls > div,
+.stats > div {
+  display: grid;
+  border-top: 2px solid rgba(255, 255, 255, 0.08);
+}
+
+.controls > div {
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.stats > div {
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  padding: 3px 0;
+}
+
+.controls dt,
+.stats dt {
+  font-weight: 600;
+  color: var(--gold);
+}
+.stats dt { color: var(--white); opacity: 0.8; font-weight: 400; }
+
+.controls dd,
+.stats dd {
+  margin: 0;
+  opacity: 0.9;
+}
+.stats dd { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.best,
+.hint {
+  margin: 0;
+  font-size: clamp(12px, 1.4vw, 14px);
+  opacity: 0.75;
+}
+.best span { color: var(--gold); font-weight: 700; }
+
+.asset-warning {
+  margin: 0;
+  font-size: 12px;
+  color: #FFB4AE;
+}
+
+.final-score {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.final-score-label { font-size: 14px; opacity: 0.8; }
+.final-score strong {
+  font-size: clamp(38px, 6vw, 60px);
+  line-height: 1;
+  color: var(--gold);
+  text-shadow: 4px 4px 0 var(--ink-deep);
+  font-variant-numeric: tabular-nums;
+}
+
+.record {
+  margin: 0;
+  padding: 0.15em 0.7em;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--gold);
+  border-radius: 3px;
+  transform: rotate(-3deg);
+}
+
+/* ---------- Controles táctiles ---------- */
+.touch-controls {
+  display: none;
+  width: min(1100px, 100%);
+  gap: 10px;
+}
+
+.touch-btn {
+  flex: 1;
+  min-height: 64px;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.08);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.touch-btn--jump {
+  flex: 1.6;
+  color: var(--ink);
+  background: var(--gold);
+  border-color: var(--ink-deep);
+}
+.touch-btn.is-pressed { transform: translateY(2px); filter: brightness(0.85); }
+
+.touch-help,
+.rotate-hint { display: none; margin: 0; font-size: 13px; line-height: 1.4; opacity: 0.9; }
+.touch-help strong { color: var(--gold); }
+
+@media (pointer: coarse) {
+  .touch-controls { display: flex; }
+  .stage { width: min(1100px, 100%, calc((100dvh - 130px) * 960 / 420)); }
+  .controls { display: none; }
+  .touch-help { display: block; }
+}
+
+@media (pointer: coarse) and (orientation: portrait) {
+  .rotate-hint { display: block; opacity: 0.7; }
+  .hud { font-size: 9px; gap: 4px; }
+}
+
+/* Móvil en horizontal: el juego ocupa toda la altura y los botones flotan encima */
+@media (pointer: coarse) and (orientation: landscape) {
+  .app { padding: 6px; }
+  .stage { width: min(100%, calc((100dvh - 12px) * 960 / 420)); }
+  .touch-controls {
+    position: fixed;
+    left: max(10px, env(safe-area-inset-left, 0px));
+    right: max(10px, env(safe-area-inset-right, 0px));
+    bottom: max(10px, env(safe-area-inset-bottom, 0px));
+    width: auto;
+    z-index: 4;
+    pointer-events: none;
+  }
+  .touch-btn {
+    flex: 0 0 auto;
+    width: 96px;
+    min-height: 54px;
+    font-size: 15px;
+    pointer-events: auto;
+    background: rgba(29, 35, 80, 0.55);
+  }
+  .touch-btn--jump {
+    margin-left: auto;
+    width: 128px;
+    background: rgba(255, 210, 63, 0.85);
+  }
+}
+
+/* En pantallas pequeñas, los menús ocupan toda la ventana para no quedar diminutos */
+@media (max-width: 720px), (max-height: 420px) {
+  .screen {
+    position: fixed;
+    background: rgba(18, 22, 56, 0.82);
+  }
+  #screen-start { background: rgba(18, 22, 56, 0.82); }
+  .card--title { width: min(470px, 100%); }
+  #screen-start { justify-content: center; padding-left: 16px; }
+  .hud-item { min-width: 4.2em; }
+  .power-bar { width: 2.2em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn { transition: none; }
+}

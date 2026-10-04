@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="El Robo de Randes: Misión Surge. Persigue a Randes, esquiva obstáculos y recupera el dinero robado.">
+  <meta name="theme-color" content="#1D2350">
+  <title>El Robo de Randes: Misión Surge</title>
+  <link rel="icon" href="assets/dinerobillete.png" type="image/png">
+
+  <!-- Fuente pixel (si no carga, se usa la fuente de respaldo de style.css) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+
+    <!-- ===== Escenario: canvas + capas de interfaz ===== -->
+    <div id="stage" class="stage">
+      <canvas id="game" width="960" height="420" aria-label="Juego El Robo de Randes: Misión Surge"></canvas>
+
+      <!-- HUD superior flotante -->
+      <div id="hud" class="hud is-hidden" aria-live="polite">
+        <div class="hud-group">
+          <div class="hud-item">
+            <span class="hud-label">Puntos</span>
+            <strong id="hud-score" class="hud-value">0</strong>
+          </div>
+          <div class="hud-item hud-item--money">
+            <span class="hud-label">Recuperado</span>
+            <strong id="hud-money" class="hud-value">0 €</strong>
+          </div>
+          <div class="hud-item">
+            <span class="hud-label">Vidas</span>
+            <span id="hud-lives" class="hud-value hud-lives"></span>
+          </div>
+        </div>
+
+        <div id="hud-powers" class="hud-powers">
+          <div class="power-chip is-hidden" data-power="magnet" title="Imán de dinero">
+            <span class="power-icon">🧲</span><span class="power-bar"><i></i></span>
+          </div>
+          <div class="power-chip is-hidden" data-power="shield" title="Escudo">
+            <span class="power-icon">🛡️</span><span class="power-bar"><i></i></span>
+          </div>
+          <div class="power-chip is-hidden" data-power="double" title="Dinero doble">
+            <span class="power-icon power-icon--text">x2</span><span class="power-bar"><i></i></span>
+          </div>
+        </div>
+
+        <div class="hud-buttons">
+          <button id="btn-mute" class="icon-btn" type="button" aria-label="Silenciar sonido">🔊</button>
+          <button id="btn-pause" class="icon-btn" type="button" aria-label="Pausar">⏸</button>
+        </div>
+      </div>
+
+      <!-- Pantalla de carga -->
+      <section id="screen-loading" class="screen">
+        <p class="loading-text">Cargando…</p>
+      </section>
+
+      <!-- Pantalla de inicio -->
+      <section id="screen-start" class="screen is-hidden" aria-labelledby="title">
+        <div class="card card--title">
+          <h1 id="title" class="title">
+            <span class="title-line">El Robo</span>
+            <span class="title-line">de Randes</span>
+          </h1>
+          <p class="stamp">Misión Surge</p>
+
+          <p class="pitch">Randes ha huido con el dinero. Esquiva, recoge lo que se le cae y, cuando se canse, esprinta para alcanzarlo y que suelte el botín.</p>
+
+          <button id="btn-play" class="btn btn--primary" type="button">Jugar</button>
+
+          <dl class="controls">
+            <div><dt>Saltar</dt><dd>Espacio o ↑, doble en el aire</dd></div>
+            <div><dt>Agacharse</dt><dd>↓ o S</dd></div>
+            <div><dt>Esprintar</dt><dd>Mantén → o D</dd></div>
+            <div><dt>Pausa</dt><dd>P o Esc</dd></div>
+          </dl>
+
+          <p class="touch-help">Toca <strong>Saltar</strong> (dos veces para el doble salto), <strong>Agachar</strong> para los pájaros a media altura y mantén <strong>Esprintar</strong> para alcanzar a Randes. Tocar la pantalla también salta.</p>
+          <p class="rotate-hint">Gira el móvil para jugar más grande.</p>
+
+          <p class="best">Mejor puntuación: <span id="best-start">0</span></p>
+          <p id="asset-warning" class="asset-warning is-hidden"></p>
+        </div>
+      </section>
+
+      <!-- Pantalla de pausa -->
+      <section id="screen-pause" class="screen is-hidden" aria-labelledby="pause-title">
+        <div class="card">
+          <h2 id="pause-title" class="screen-title">Pausa</h2>
+          <button id="btn-resume" class="btn btn--primary" type="button">Seguir corriendo</button>
+          <button id="btn-quit" class="btn btn--ghost" type="button">Volver al inicio</button>
+        </div>
+      </section>
+
+      <!-- Pantalla de Game Over -->
+      <section id="screen-over" class="screen is-hidden" aria-labelledby="over-title">
+        <div class="card card--over">
+          <h2 id="over-title" class="screen-title">Randes se ha escapado</h2>
+          <p id="over-record" class="record is-hidden">¡Nuevo récord!</p>
+
+          <p class="final-score">
+            <span class="final-score-label">Puntuación final</span>
+            <strong id="over-score">0</strong>
+          </p>
+
+          <dl class="stats">
+            <div><dt>Dinero recuperado</dt><dd id="over-money">0 €</dd></div>
+            <div><dt>Distancia</dt><dd id="over-distance">0 m</dd></div>
+            <div><dt>Toques a Randes</dt><dd id="over-tags">0</dd></div>
+            <div><dt>Mejor puntuación</dt><dd id="over-best">0</dd></div>
+          </dl>
+
+          <div class="btn-row">
+            <button id="btn-restart" class="btn btn--primary" type="button">Jugar otra vez</button>
+            <button id="btn-menu" class="btn btn--ghost" type="button">Volver al inicio</button>
+          </div>
+          <p class="hint">Enter o Espacio para reiniciar</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- Controles táctiles (solo se muestran en pantallas táctiles) -->
+    <div id="touch-controls" class="touch-controls" aria-hidden="true">
+      <button class="touch-btn" data-action="crouch" type="button">Agachar</button>
+      <button class="touch-btn" data-action="sprint" type="button">Esprintar</button>
+      <button class="touch-btn touch-btn--jump" data-action="jump" type="button">Saltar</button>
+    </div>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>
